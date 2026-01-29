@@ -10,34 +10,42 @@ import {
   LayoutDashboard,
   User,
   ChevronDown,
-  Menu,
-  X,
 } from "lucide-react";
 import "@/lib/amplify-config";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import ConfirmModal from "./ConfirmModal";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userAttributes, setUserAttributes] = useState(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const router = useRouter();
 
   const checkUser = async () => {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-
-      if (currentUser) {
-        const attributes = await fetchUserAttributes();
-        setUserAttributes(attributes);
-      }
     } catch (err) {
       setUser(null);
-      setUserAttributes(null);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.userId],
+    queryFn: async () => {
+      const response = await axios.get(`${BACKEND_URL}/user/profile`, {
+        headers: { 'user-id': user.userId }
+      });
+      return response.data;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     checkUser();
@@ -48,7 +56,6 @@ export default function Navbar() {
           break;
         case "signedOut":
           setUser(null);
-          setUserAttributes(null);
           break;
       }
     });
@@ -58,14 +65,13 @@ export default function Navbar() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      setIsLogoutModalOpen(false);
       setIsDropdownOpen(false);
-      router.push("/auth/login");
+      router.push("/");
     } catch (error) {
       console.error(error);
     }
   };
-
-
 
 
   return (
@@ -124,9 +130,9 @@ export default function Navbar() {
                 className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-neutral-900 transition-all"
               >
                 {/* Profile Image or Icon */}
-                {userAttributes?.picture ? (
+                {profile?.profileImageUrl ? (
                   <img
-                    src={userAttributes.picture}
+                    src={profile.profileImageUrl}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent group-hover:ring-white/20 transition-all"
                   />
@@ -158,12 +164,12 @@ export default function Navbar() {
                         Signed in as
                       </p>
                       <p className="text-sm font-semibold text-white truncate">
-                        {userAttributes?.given_name && userAttributes?.family_name
-                          ? `${userAttributes.given_name} ${userAttributes.family_name}`
+                        {profile?.firstName && profile?.lastName
+                          ? `${profile.firstName} ${profile.lastName}`
                           : user.username}
                       </p>
                       <p className="text-xs text-neutral-400 truncate mt-0.5">
-                        {userAttributes?.email || ''}
+                        {profile?.email || ''}
                       </p>
                     </div>
 
@@ -183,7 +189,7 @@ export default function Navbar() {
                     <div className="h-px bg-neutral-800 my-1" />
 
                     <button
-                      onClick={handleSignOut}
+                      onClick={() => setIsLogoutModalOpen(true)}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                     >
                       <LogOut size={16} /> Sign Out
@@ -197,6 +203,12 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleSignOut}
+      />
     </nav>
   );
 }

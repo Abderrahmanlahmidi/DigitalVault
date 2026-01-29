@@ -11,7 +11,7 @@ const poppins = Poppins({
 
 
 export const metadata = {
-  title: "DigitalVault | Premium Digital Assets Marketplace",
+  title: "DigitalVault",
   description: "Securely buy and sell 3D models, code snippets, and Notion templates with instant delivery via temporary links.",
 };
 

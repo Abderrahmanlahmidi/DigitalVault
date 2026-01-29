@@ -1,5 +1,15 @@
-import { Controller, Get, Patch, Body, Request } from '@nestjs/common';
-
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  Request,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -28,5 +38,22 @@ export class UserController {
       return { message: 'User ID missing in headers (Simulation)' };
     }
     return this.userService.updateProfile(userId, updateUserDto);
+  }
+
+  @Post('upload-image')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const userId = req.headers['user-id'];
+    if (!userId) {
+      throw new BadRequestException('User ID missing');
+    }
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    return this.userService.uploadProfileImage(userId, file);
   }
 }

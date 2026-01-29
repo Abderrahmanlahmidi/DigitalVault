@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import {
   Injectable,
   InternalServerErrorException,
@@ -13,11 +11,15 @@ import {
   AdminSetUserPasswordCommand,
   AttributeType,
 } from '@aws-sdk/client-cognito-identity-provider';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class UserService {
   private cognitoClient: CognitoIdentityProviderClient;
+  private s3Client: S3Client;
   private userPoolId = process.env.COGNITO_USER_POOL_ID || '';
+  private bucketName =
+    process.env.S3_BUCKET_NAME_PROFILE || 'digital-vault-profile-pics';
 
   constructor(private prisma: PrismaService) {
     const awsConfig = {
@@ -28,6 +30,7 @@ export class UserService {
       },
     };
     this.cognitoClient = new CognitoIdentityProviderClient(awsConfig);
+    this.s3Client = new S3Client(awsConfig);
   }
 
   async getProfile(userId: string) {
@@ -39,13 +42,8 @@ export class UserService {
       });
 
       if (!user) {
-        console.log(
-          `[UserService] User not found in database for id: ${userId}`,
-        );
         throw new NotFoundException('User not found');
       }
-
-      console.log(`[UserService] User found`);
       return user;
     } catch (error) {
       console.error(`[UserService] Error in getProfile:`, error);
@@ -63,10 +61,6 @@ export class UserService {
       newPassword,
     } = updateUserDto;
 
-
-
-    // 1. Update Database (Source of Truth for Display)
-    // Includes: Image, Name, Phone
     const updateData: any = {};
     if (firstName) updateData.firstName = firstName;
     if (lastName) updateData.lastName = lastName;
@@ -122,5 +116,32 @@ export class UserService {
     }
 
     return updatedUser;
+  }
+
+  async uploadProfileImage(userId: string, file: Express.Multer.File) {
+    const fileExtension = file.originalname.split('.').pop();
+    const fileName = `profiles/${userId}-${Date.now()}.${fileExtension}`;
+
+    try {
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: fileName,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+          ACL: 'public-read',
+        }),
+      );
+
+      const imageUrl = `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: { profileImageUrl: imageUrl },
+      });
+    } catch (error) {
+      console.error('S3 Upload Error:', error);
+      throw new InternalServerErrorException('Failed to upload image to S3');
+    }
   }
 }
