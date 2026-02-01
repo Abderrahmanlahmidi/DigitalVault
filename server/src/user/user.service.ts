@@ -59,16 +59,44 @@ export class UserService {
       profileImageUrl,
       currentPassword,
       newPassword,
+      role,
     } = updateUserDto;
 
     const updateData: any = {};
     if (firstName) updateData.firstName = firstName;
     if (lastName) updateData.lastName = lastName;
     if (phoneNumber) updateData.phoneNumber = phoneNumber;
-
     if (profileImageUrl) updateData.profileImageUrl = profileImageUrl;
 
-    console.log('profile image url from :', profileImageUrl);
+    if (role) {
+      const normalizedRole = role.toUpperCase();
+
+      if (normalizedRole === 'ADMIN') {
+        throw new Error('Unauthorized: Cannot assign ADMIN role');
+      }
+
+      const roleRecord = await this.prisma.role.findUnique({
+        where: { name: normalizedRole },
+      });
+
+      if (roleRecord) {
+        updateData.roleId = roleRecord.id;
+
+        try {
+          const syncCommand = new AdminUpdateUserAttributesCommand({
+            UserPoolId: this.userPoolId,
+            Username: userId,
+            UserAttributes: [{ Name: 'custom:role', Value: normalizedRole }],
+          });
+          await this.cognitoClient.send(syncCommand);
+        } catch (cognitoError) {
+          console.error(
+            `[UserService] Cognito role sync failed for user ${userId}:`,
+            cognitoError,
+          );
+        }
+      }
+    }
 
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },

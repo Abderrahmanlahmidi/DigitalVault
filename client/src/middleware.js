@@ -9,6 +9,8 @@ export const config = {
         '/auth/login',
         '/auth/register',
         '/auth/verify',
-        '/profile/:path*'
+        '/profile/:path*',
+        '/create-product',
+        '/my-products'
     ],
 };
