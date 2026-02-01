@@ -13,7 +13,6 @@ import {
     Save,
     Loader2,
     Image as ImageIcon,
-    CheckCircle2,
     Shield,
     AlertCircle,
     Edit2
