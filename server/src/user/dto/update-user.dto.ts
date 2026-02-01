@@ -28,4 +28,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   newPassword?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
 }

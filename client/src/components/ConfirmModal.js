@@ -10,7 +10,8 @@ export default function ConfirmModal({
     message = "Are you sure you want to log out of your account?",
     confirmText = "Log Out",
     cancelText = "Cancel",
-    isDanger = true
+    isDanger = true,
+    Icon = LogOut
 }) {
     if (!isOpen) return null;
 
@@ -36,7 +37,7 @@ export default function ConfirmModal({
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-4">
                             <div className={`p-3 rounded-xl ${isDanger ? 'bg-red-500/10 text-red-500' : 'bg-white/10 text-white'}`}>
-                                <LogOut size={24} />
+                                <Icon size={24} />
                             </div>
                             <button
                                 onClick={onClose}
@@ -59,8 +60,8 @@ export default function ConfirmModal({
                             <button
                                 onClick={onConfirm}
                                 className={`flex-1 px-6 py-3 font-semibold rounded-xl shadow-lg transition-all ${isDanger
-                                        ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-900/20'
-                                        : 'bg-white hover:bg-neutral-200 text-black'
+                                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-900/20'
+                                    : 'bg-white hover:bg-neutral-200 text-black'
                                     }`}
                             >
                                 {confirmText}

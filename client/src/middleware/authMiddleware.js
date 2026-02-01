@@ -4,34 +4,45 @@ import { runWithAmplifyServerContext } from '@/utils/amplify-server-utils';
 
 export async function authMiddleware(request) {
     const response = NextResponse.next();
+    const { pathname } = request.nextUrl;
 
-    const authenticated = await runWithAmplifyServerContext({
+    const userId = await runWithAmplifyServerContext({
         nextServerContext: { request, response },
         operation: async (contextSpec) => {
             try {
                 const session = await fetchAuthSession(contextSpec);
-                return session.tokens !== undefined;
+                return session.tokens?.idToken?.payload?.sub || null;
             } catch (error) {
-                return false;
+                return null;
             }
         },
     });
 
-    const { pathname } = request.nextUrl;
+    const isAuthenticated = !!userId;
 
     const isAuthPage = pathname.startsWith('/auth/login') ||
         pathname.startsWith('/auth/register') ||
         pathname.startsWith('/auth/verify');
 
-    const isProtectedPage = pathname.startsWith('/profile');
+    const isSellerPage = pathname.startsWith('/create-product') || pathname.startsWith('/my-products');
+    const isProtectedPage = pathname.startsWith('/profile') || isSellerPage;
 
-    if (authenticated && isAuthPage) {
+    if (isAuthenticated && isAuthPage) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
-    if (!authenticated && isProtectedPage) {
+    if (!isAuthenticated && isProtectedPage) {
         const loginUrl = new URL('/auth/login', request.url);
         return NextResponse.redirect(loginUrl);
+    }
+
+    // Role-based protection for /create-product
+    if (isAuthenticated && isSellerPage) {
+        const userRole = request.cookies.get('user-role')?.value;
+
+        if (userRole?.toUpperCase() !== 'SELLER') {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
     }
 
     return response;

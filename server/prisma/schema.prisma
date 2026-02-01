@@ -22,18 +22,18 @@ model Role {
 }
 
 model User {
-  id        String    @id
-  firstName String
-  lastName  String
-  email     String    @unique
-  phoneNumber String?
-  roleId    String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  role      Role      @relation(fields: [roleId], references: [id])
+  id              String    @id @db.Uuid
+  firstName       String
+  lastName        String
+  email           String    @unique
+  phoneNumber     String?
+  roleId          String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  role            Role      @relation(fields: [roleId], references: [id])
   profileImageUrl String?
-  products  Product[]
-  payments  Payment[]
+  products        Product[]
+  payments        Payment[]
 }
 
 model Category {
@@ -43,15 +43,15 @@ model Category {
 }
 
 model Product {
-  id             String  @id @default(uuid())
+  id             String   @id @default(uuid())
   title          String
   description    String
   price          Decimal
-  status         Status  @default(PENDING)
-  previewUrls    String
+  status         Status   @default(PENDING)
+  previewUrls    String[]
   privateFileKey String
 
-  userId String
+  userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id])
 
   categoryId String
@@ -65,7 +65,7 @@ model Payment {
   status          String
   stripeSessionId String
 
-  userId String
+  userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id])
 
   productId String
