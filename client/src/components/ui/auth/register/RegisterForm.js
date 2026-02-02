@@ -3,10 +3,10 @@
 import { signUp } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Users, Mail, Lock, Calendar, ArrowRight, User } from 'lucide-react';
+import { Users, Mail, Lock, Calendar, ArrowRight, User, Phone, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 import '@/lib/amplify-config';
 
 export default function RegisterForm() {
@@ -41,7 +41,6 @@ export default function RegisterForm() {
                 }
             });
         },
-
         onSuccess: (_, variables) => {
             router.push(`/auth/verify?email=${encodeURIComponent(variables.email)}`);
         },
@@ -51,9 +50,7 @@ export default function RegisterForm() {
     });
 
     const onSubmit = (data) => {
-        if (data.password !== data.confirmPassword) {
-            return;
-        }
+        if (data.password !== data.confirmPassword) return;
         registerMutation.mutate(data);
     };
 
@@ -67,180 +64,157 @@ export default function RegisterForm() {
     };
 
     return (
-        <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-16 lg:px-24 py-12 z-10 overflow-y-auto border-r border-neutral-800">
+        <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-16 lg:px-24 py-16 z-10 relative overflow-y-auto no-scrollbar bg-[#050505] border-r border-white/5">
+            {/* Background Decorative Glow */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
+
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="max-w-md w-full mx-auto"
+                transition={{ duration: 0.8 }}
+                className="max-w-md w-full mx-auto relative z-10"
             >
-                <Link href="/" className="mb-10 inline-block">
-                    <h1 className="text-2xl font-bold tracking-tight text-white">
-                        DIGITAL<span className="text-neutral-500">VAULT</span>
-                    </h1>
+                <Link href="/" className="mb-12 inline-block group">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center group-hover:bg-emerald-400 transition-colors">
+                            <ShieldCheck size={24} strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-2xl font-black tracking-tighter text-white">
+                            DIGITAL<span className="text-white/20">VAULT</span>
+                        </h1>
+                    </div>
                 </Link>
 
-                <h2 className="text-3xl font-bold mb-2">Create Account</h2>
-                <p className="text-neutral-400 mb-8">Start your journey in the world's most secure digital asset marketplace.</p>
+                <div className="mb-10">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="h-[1px] w-6 bg-emerald-500" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">Inventory Setup</span>
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight leading-none text-white">
+                        NEW <span className="text-white/20 italic">OPERATOR</span>
+                    </h2>
+                    <p className="text-neutral-500 font-medium">Create your credentials for the global digital architecture.</p>
+                </div>
 
                 {registerMutation.isError && (
-                    <div className="mb-6 p-4 border border-red-900/50 bg-red-900/20 rounded-lg text-red-300 text-sm flex items-center gap-3">
-                        <span className="w-1.5 h-1.5 bg-red-300 rounded-full" />
-                        {registerMutation.error.message || 'An error occurred during sign up'}
+                    <div className="mb-8 p-5 border border-rose-500/20 bg-rose-500/5 rounded-2xl text-rose-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
+                        <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+                        {registerMutation.error.message || 'Vault Registration Rejected'}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-neutral-400">First Name</label>
-                            <div className="relative">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">First Name</label>
+                            <div className="relative group">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700 group-focus-within:text-emerald-500 transition-colors" size={16} />
                                 <input
-                                    {...register('firstName', { required: 'First name is required' })}
-                                    type="text"
-                                    placeholder="John"
-                                    className={`w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all ${errors.firstName ? 'border-red-500' : ''}`}
+                                    {...register('firstName', { required: 'Required' })}
+                                    type="text" placeholder="LEGACY"
+                                    className={`w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm ${errors.firstName ? 'border-rose-500/30' : ''}`}
                                     disabled={registerMutation.isPending}
                                 />
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
                             </div>
-                            {errors.firstName && (
-                                <p className="text-red-400 text-sm mt-1">{errors.firstName.message}</p>
-                            )}
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-neutral-400">Last Name</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Last Name</label>
                             <input
-                                {...register('lastName', { required: 'Last name is required' })}
-                                type="text"
-                                placeholder="Doe"
-                                className={`w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all ${errors.lastName ? 'border-red-500' : ''}`}
+                                {...register('lastName', { required: 'Required' })}
+                                type="text" placeholder="UNIT"
+                                className={`w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm ${errors.lastName ? 'border-rose-500/30' : ''}`}
                                 disabled={registerMutation.isPending}
                             />
-                            {errors.lastName && (
-                                <p className="text-red-400 text-sm mt-1">{errors.lastName.message}</p>
-                            )}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-neutral-400">Email</label>
-                        <div className="relative">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Vault Identifier (Email)</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700 group-focus-within:text-emerald-500 transition-colors" size={16} />
                             <input
-                                {...register('email', {
-                                    required: 'Email is required',
-                                    pattern: {
-                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                        message: "Invalid email address"
-                                    }
-                                })}
-                                type="email"
-                                placeholder="name@company.com"
-                                className={`w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all ${errors.email ? 'border-red-500' : ''}`}
+                                {...register('email', { required: 'Identifer required', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email" } })}
+                                type="email" placeholder="operator@vault.io"
+                                className={`w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm ${errors.email ? 'border-rose-500/30' : ''}`}
                                 disabled={registerMutation.isPending}
                             />
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
                         </div>
-                        {errors.email && (
-                            <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
-                        )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Sync Phone</label>
+                            <div className="relative group">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-black text-[10px]">+1</span>
+                                <input
+                                    type="tel" placeholder="000 000 0000"
+                                    className={`w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm ${errors.phoneNumber ? 'border-rose-500/30' : ''}`}
+                                    value={formatPhoneNumber(watch('phoneNumber'))}
+                                    onChange={(e) => setValue('phoneNumber', e.target.value.replace(/\D/g, ''))}
+                                    disabled={registerMutation.isPending}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Creation Date</label>
+                            <div className="relative group">
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700" size={16} />
+                                <input
+                                    {...register('birthdate', { required: 'Required' })}
+                                    type="date"
+                                    className="w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm"
+                                    disabled={registerMutation.isPending}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-neutral-400">Phone Number</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-medium text-sm">+1</span>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Access Key (Password)</label>
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700 group-focus-within:text-emerald-500 transition-colors" size={16} />
                             <input
-                                type="tel"
-                                placeholder="555-123-4567"
-                                className={`w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all ${errors.phoneNumber ? 'border-red-500' : ''}`}
-                                value={formatPhoneNumber(watch('phoneNumber'))}
-                                onChange={(e) => setValue('phoneNumber', e.target.value.replace(/\D/g, ''))}
+                                {...register('password', { required: 'Key required', minLength: 8 })}
+                                type="password" placeholder="••••••••"
+                                className={`w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm ${errors.password ? 'border-rose-500/30' : ''}`}
                                 disabled={registerMutation.isPending}
                             />
                         </div>
-                        {errors.phoneNumber && (
-                            <p className="text-red-400 text-sm mt-1">{errors.phoneNumber.message}</p>
-                        )}
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-neutral-400">Birth Date</label>
-                        <div className="relative">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Confirm Access Key</label>
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-700 group-focus-within:text-emerald-500 transition-colors" size={16} />
                             <input
-                                {...register('birthdate', { required: 'Birth date is required' })}
-                                type="date"
-                                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all"
+                                {...register('confirmPassword', { required: 'Confirm mismatch', validate: (val) => watch('password') === val })}
+                                type="password" placeholder="••••••••"
+                                className={`w-full bg-neutral-900/40 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white placeholder:text-neutral-800 outline-none focus:border-emerald-500/30 font-black text-sm ${errors.confirmPassword ? 'border-rose-500/30' : ''}`}
                                 disabled={registerMutation.isPending}
                             />
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
                         </div>
-                        {errors.birthdate && (
-                            <p className="text-red-400 text-sm mt-1">{errors.birthdate.message}</p>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-neutral-400">Password</label>
-                        <div className="relative">
-                            <input
-                                {...register('password', {
-                                    required: 'Password is required',
-                                    minLength: { value: 8, message: 'At least 8 characters' }
-                                })}
-                                type="password"
-                                placeholder="••••••••"
-                                className={`w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all ${errors.password ? 'border-red-500' : ''}`}
-                                disabled={registerMutation.isPending}
-                            />
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
-                        </div>
-                        {errors.password && (
-                            <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-neutral-400">Confirm Password</label>
-                        <div className="relative">
-                            <input
-                                {...register('confirmPassword', {
-                                    required: 'Please confirm your password',
-                                    validate: (val) => {
-                                        if (watch('password') != val) {
-                                            return "Your passwords do not match";
-                                        }
-                                    }
-                                })}
-                                type="password"
-                                placeholder="••••••••"
-                                className={`w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 pl-10 text-white placeholder-neutral-600 focus:outline-none focus:border-white focus:ring-1 focus:ring-white/20 transition-all ${errors.confirmPassword ? 'border-red-500' : ''}`}
-                                disabled={registerMutation.isPending}
-                            />
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
-                        </div>
-                        {errors.confirmPassword && (
-                            <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>
-                        )}
                     </div>
 
                     <button
                         type="submit"
                         disabled={registerMutation.isPending}
-                        className="w-full bg-white text-black border border-white hover:bg-neutral-200 p-4 rounded-lg transition-all duration-200 font-semibold flex items-center justify-center gap-2 mt-2 group relative overflow-hidden"
+                        className="w-full bg-white hover:bg-emerald-400 text-black py-6 rounded-2xl transition-all duration-300 font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 mt-4 shadow-2xl shadow-white/5 hover:-translate-y-1 active:scale-[0.98] group"
                     >
-                        <span className="relative z-10 flex items-center gap-2">
-                            {registerMutation.isPending ? 'Creating Account...' : (
-                                <>Create Account <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
-                            )}
-                        </span>
+                        {registerMutation.isPending ? (
+                            <Loader2 className="animate-spin" size={20} strokeWidth={3} />
+                        ) : (
+                            <>
+                                Initialize Vault
+                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </>
+                        )}
                     </button>
                 </form>
 
-                <p className="mt-8 text-center text-sm text-neutral-500">
-                    Already have an account?{' '}
-                    <Link href="/auth/login" className="text-white hover:underline font-medium transition-colors">
-                        Sign In
+                <p className="mt-10 text-center text-xs font-black uppercase tracking-[0.2em] text-neutral-600">
+                    ALREADY REGISTERED?{' '}
+                    <Link href="/auth/login" className="text-white hover:text-emerald-400 transition-colors">
+                        SIGN_IN_PROTOCOL
                     </Link>
                 </p>
             </motion.div>

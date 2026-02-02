@@ -1,29 +1,39 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Alert({ type = 'error', message, onClose }) {
     if (!message) return null;
 
     const isSuccess = type === 'success';
-    const bgColor = isSuccess ? 'bg-emerald-900/20' : 'bg-red-900/20';
-    const borderColor = isSuccess ? 'border-emerald-900/50' : 'border-red-900/50';
-    const textColor = isSuccess ? 'text-emerald-400' : 'text-red-400';
-    const Icon = isSuccess ? CheckCircle2 : AlertCircle;
+    const Icon = isSuccess ? ShieldCheck : ShieldAlert;
 
     return (
-        <div className={`mb-6 p-4 rounded-lg flex items-center justify-between gap-3 text-sm border ${bgColor} ${borderColor} ${textColor}`}>
-            <div className="flex items-center gap-3">
-                <Icon size={18} />
-                <span>{message}</span>
-            </div>
-            {onClose && (
-                <button
-                    onClick={onClose}
-                    className={`p-1 rounded-full hover:bg-white/10 transition-colors ${textColor}`}
-                >
-                    <X size={16} />
-                </button>
-            )}
-        </div>
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={`mb-8 p-6 rounded-2xl border flex items-center justify-between gap-4 backdrop-blur-xl shadow-2xl ${isSuccess
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-emerald-500/5'
+                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-rose-500/5'
+                    }`}
+            >
+                <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${isSuccess ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                        <Icon size={20} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em]">{message}</span>
+                </div>
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-xl hover:bg-white/5 transition-all active:scale-90"
+                    >
+                        <X size={16} />
+                    </button>
+                )}
+            </motion.div>
+        </AnimatePresence>
     );
 }
