@@ -5,10 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, Loader2, Save } from 'lucide-react';
-import Alert from '@/components/Alert';
-
-
+import { Lock, Eye, EyeOff, Loader2, Save, KeyRound } from 'lucide-react';
 
 export default function SecurityForm({ userId }) {
     const [showCurrentPass, setShowCurrentPass] = useState(false);
@@ -43,108 +40,96 @@ export default function SecurityForm({ userId }) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-6 backdrop-blur-sm"
+            className="bg-neutral-900/40 border border-white/5 rounded-[3rem] p-10 backdrop-blur-3xl"
         >
-            <div className="mb-6">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Lock className="text-neutral-500" size={20} /> Security
-                </h3>
-                <p className="text-neutral-500 text-sm mt-1">Change your password.</p>
+            <div className="flex items-center justify-between mb-10">
+                <div>
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-600 mb-2 flex items-center gap-2">
+                        <Lock size={14} /> 02. Secure Protocol
+                    </h3>
+                    <p className="text-neutral-500 text-sm font-medium">Reset your vault access credentials.</p>
+                </div>
+                {updatePasswordMutation.isSuccess && (
+                    <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 text-[10px] font-black uppercase tracking-widest animate-fade-in">
+                        PROTOCOL RESET SUCCESS
+                    </div>
+                )}
             </div>
 
-            <Alert
-                type="success"
-                message={updatePasswordMutation.isSuccess ? 'Password updated successfully.' : null}
-                onClose={() => updatePasswordMutation.reset()}
-            />
-
-            <Alert
-                type="error"
-                message={updatePasswordMutation.isError ? (updatePasswordMutation.error?.response?.data?.message || "Failed to update password.") : null}
-                onClose={() => updatePasswordMutation.reset()}
-            />
-
-            <form onSubmit={handleSubmit(onUpdatePassword)} className="space-y-6">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-400 block">Current Password</label>
+            <form onSubmit={handleSubmit(onUpdatePassword)} className="space-y-10">
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Current Credential</label>
                     <div className="relative">
+                        <KeyRound className="absolute left-6 top-1/2 -translate-y-1/2 text-neutral-700" size={18} />
                         <input
-                            {...register('currentPassword', { required: 'Current password is required' })}
+                            {...register('currentPassword', { required: true })}
                             type={showCurrentPass ? "text" : "password"}
-                            className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2.5 pr-10 text-white focus:border-white focus:ring-1 focus:ring-white transition-all outline-none"
-                            placeholder="••••••••"
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-14 pr-14 outline-none focus:border-emerald-500/30 transition-all font-black text-white"
+                            placeholder="••••••••••••"
                         />
                         <button
                             type="button"
                             onClick={() => setShowCurrentPass(!showCurrentPass)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                            className="absolute right-6 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-white transition-colors"
                         >
-                            {showCurrentPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                            {showCurrentPass ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
-                    {errors.currentPassword && <p className="text-red-500 text-xs mt-1">{errors.currentPassword.message}</p>}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-neutral-400 block">New Password</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">New Access Key</label>
                         <div className="relative">
                             <input
                                 {...register('newPassword', {
-                                    required: 'New password is required',
-                                    minLength: { value: 8, message: 'Must be at least 8 characters' }
+                                    required: true,
+                                    minLength: 8
                                 })}
                                 type={showNewPass ? "text" : "password"}
-                                className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2.5 pr-10 text-white focus:border-white focus:ring-1 focus:ring-white transition-all outline-none"
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 px-6 pr-14 outline-none focus:border-emerald-500/30 transition-all font-black text-white"
                                 placeholder="••••••••"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowNewPass(!showNewPass)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-white transition-colors"
                             >
-                                {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                {showNewPass ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
-                        {errors.newPassword && <p className="text-red-500 text-xs mt-1">{errors.newPassword.message}</p>}
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-neutral-400 block">Confirm New Password</label>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 pl-2">Confirm Key</label>
                         <div className="relative">
                             <input
                                 {...register('confirmNewPassword', {
-                                    required: 'Please confirm your new password',
-                                    validate: (val) => {
-                                        if (watch('newPassword') != val) {
-                                            return "Passwords do not match";
-                                        }
-                                    }
+                                    required: true,
+                                    validate: (val) => watch('newPassword') === val
                                 })}
                                 type={showConfirmPass ? "text" : "password"}
-                                className="w-full bg-black border border-neutral-800 rounded-lg px-4 py-2.5 pr-10 text-white focus:border-white focus:ring-1 focus:ring-white transition-all outline-none"
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 px-6 pr-14 outline-none focus:border-emerald-500/30 transition-all font-black text-white"
                                 placeholder="••••••••"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPass(!showConfirmPass)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-white transition-colors"
                             >
-                                {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                {showConfirmPass ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
-                        {errors.confirmNewPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmNewPassword.message}</p>}
                     </div>
                 </div>
 
-                <div className="pt-2 flex justify-end">
+                <div className="pt-6 flex justify-end">
                     <button
                         type="submit"
                         disabled={updatePasswordMutation.isPending}
-                        className="px-6 py-2.5 bg-neutral-800 text-white font-semibold rounded-lg hover:bg-neutral-700 transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="flex items-center gap-3 px-10 py-5 bg-neutral-900 border border-white/10 text-white text-xs font-black rounded-2xl hover:bg-neutral-800 transition-all active:scale-95 shadow-2xl disabled:opacity-50"
                     >
-                        {updatePasswordMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                        Update Password
+                        {updatePasswordMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />}
+                        {updatePasswordMutation.isPending ? "ENCRYPTING..." : "UPDATE ACCESS KEY"}
                     </button>
                 </div>
             </form>
